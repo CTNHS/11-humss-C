@@ -132,7 +132,7 @@
       to: "the friend who stayed",
       mood: "gratitude",
       message:
-        "You never needed the whole story to sit beside me. Thank you for making quiet feel less lonely.",
+        "May your success be louder than your pains, doubts, and struggles. I pray the life you're building is everything you once cried for.",
       song: SONGS[4],
     },
     {
