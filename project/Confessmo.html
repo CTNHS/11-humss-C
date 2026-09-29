@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f7f1e8" />
+    <meta
+      name="description"
+      content="A little space for the words you keep to yourself. Write a confession, attach a song, and let it out."
+    />
+    <title>ConfessMo. — A little less unsaid.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="Confessmo.css" />
+    <script src="Confessmo.js" defer></script>
+  </head>
+  <body>
+    <svg
+      class="icon-defs"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <defs>
+        <symbol id="i-heart" viewBox="0 0 24 24">
+          <path
+            d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"
+          />
+        </symbol>
+        <symbol id="i-arrow" viewBox="0 0 24 24">
+          <path d="M4 12h16m-6-6 6 6-6 6" />
+        </symbol>
+        <symbol id="i-pen" viewBox="0 0 24 24">
+          <path d="m15 5 4 4M4 20l5-1L21 7a2.8 2.8 0 0 0-4-4L5 15l-1 5Z" />
+        </symbol>
+        <symbol id="i-music" viewBox="0 0 24 24">
+          <path d="M9 18V5l11-2v13M9 9l11-2" />
+          <ellipse cx="6" cy="18" rx="3" ry="3" />
+          <ellipse cx="17" cy="16" rx="3" ry="3" />
+        </symbol>
+        <symbol id="i-search" viewBox="0 0 24 24">
+          <circle cx="10.8" cy="10.8" r="7" />
+          <path d="m16 16 5 5" />
+        </symbol>
+        <symbol id="i-bookmark" viewBox="0 0 24 24">
+          <path d="M6 4h12v17l-6-4-6 4V4Z" />
+        </symbol>
+        <symbol id="i-close" viewBox="0 0 24 24">
+          <path d="m6 6 12 12M6 18 18 6" />
+        </symbol>
+        <symbol id="i-menu" viewBox="0 0 24 24">
+          <path d="M4 7h16M4 12h16M4 17h16" />
+        </symbol>
+        <symbol id="i-check" viewBox="0 0 24 24">
+          <path d="m5 12 4 4L19 6" />
+        </symbol>
+        <symbol id="i-send" viewBox="0 0 24 24">
+          <path d="m22 2-7 20-4-9L2 9l20-7ZM11 13 22 2" />
+        </symbol>
+        <symbol id="i-eye" viewBox="0 0 24 24">
+          <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
+          <circle cx="12" cy="12" r="3" />
+        </symbol>
+        <symbol id="i-spark" viewBox="0 0 24 24">
+          <path
+            d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z"
+          />
+        </symbol>
+        <symbol id="i-trash" viewBox="0 0 24 24">
+          <path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7" />
+        </symbol>
+        <symbol id="i-download" viewBox="0 0 24 24">
+          <path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5" />
+        </symbol>
+        <symbol id="i-play" viewBox="0 0 24 24">
+          <path d="m8 4 12 8-12 8V4Z" />
+        </symbol>
+      </defs>
+    </svg>
+    <a href="#compose" class="skip-link">Skip to confession form</a>
+    <div class="reading-progress" aria-hidden="true">
+      <span id="readingProgress"></span>
+    </div>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+    <header class="site-header">
+      <nav class="navbar shell" aria-label="Main navigation">
+        <a class="logo" href="#home" aria-label="ConfessMo home"
+          >Confess<span>Mo.</span
+          ><span class="logo-heart" aria-hidden="true">♡</span></a
+        >
+        <div class="desktop-nav">
+          <a href="#home">Home</a><a href="#confessions">The wall</a
+          ><a href="#about">Our little space</a>
+        </div>
+        <div class="nav-actions">
+          <button
+            class="icon-button"
+            id="motionToggle"
+            type="button"
+            aria-label="Pause decorative animations"
+            aria-pressed="false"
+            title="Pause animations"
+          >
+            <svg class="icon"><use href="#i-spark" /></svg></button
+          ><a class="button button-small nav-write" href="#compose"
+            >Let it out <svg class="icon"><use href="#i-pen" /></svg></a
+          ><button
+            id="menuButton"
+            class="icon-button menu-button"
+            type="button"
+            aria-label="Open menu"
+            aria-expanded="false"
+            aria-controls="mobileMenu"
+          >
+            <svg class="icon"><use href="#i-menu" /></svg>
+          </button>
+        </div>
+        <div id="mobileMenu" class="mobile-menu" hidden>
+          <a href="#home">Home</a><a href="#compose">Write a confession</a
+          ><a href="#confessions">The wall</a
+          ><a href="#about">Our little space</a>
+        </div>
+      </nav>
+    </header>
+    <main>
+      <section class="hero shell" id="home" aria-labelledby="heroTitle">
+        <div class="hero-copy">
+          <p class="eyebrow hero-enter">
+            <span class="tiny-star">✳</span> A LITTLE SPACE. A LITTLE COURAGE.
+          </p>
+          <h1 id="heroTitle" class="hero-enter">
+            Some things are<br />easier <em>left here.</em>
+          </h1>
+          <p class="hero-description hero-enter">
+            The crush. The thank you. The words you never sent.<br
+              class="desktop-break"
+            />
+            Give them a home, and maybe a song.
+          </p>
+          <div class="hero-buttons hero-enter">
+            <a href="#compose" class="button"
+              >Write a confession
+              <svg class="icon"><use href="#i-arrow" /></svg></a
+            ><a href="#confessions" class="text-link"
+              >Read a little <span aria-hidden="true">↗</span></a
+            >
+          </div>
+          <div class="hero-footnote hero-enter">
+            <span class="small-heart" aria-hidden="true">♡</span
+            ><span>No account. No pressure. Just your words.</span>
+          </div>
+        </div>
+        <div
+          class="hero-art"
+          aria-label="A spinning vinyl record surrounded by little handwritten notes"
+          role="img"
+        >
+          <div class="orbit orbit-one"></div>
+          <div class="orbit orbit-two"></div>
+          <span class="art-star star-one">✳</span
+          ><span class="art-star star-two">✧</span>
+          <div class="record-sleeve">
+            <div class="sleeve-heading">THE THINGS<br />WE DON'T SAY.</div>
+            <span class="sleeve-bottom"
+              >a collection of almosts &amp; always</span
+            >
+          </div>
+          <div class="record">
+            <div class="record-shine"></div>
+            <div class="record-label">
+              <span>CONFESSMO.</span><b>with<br /><em>feeling.</em></b
+              ><span>SIDE A · YOUR HEART</span><i></i>
+            </div>
+          </div>
+          <div class="floating-note note-one">
+            <span>dear you,</span>
+            <p>I still smile when<br />your name pops up.</p>
+            <span class="note-heart">♡</span>
+          </div>
+          <div class="floating-note note-two">
+            <span class="wave" aria-hidden="true"
+              ><i></i><i></i><i></i><i></i><i></i
+            ></span>
+            <div><small>EVERY FEELING HAS</small><b>a soundtrack.</b></div>
+          </div>
+          <span class="art-caption"
+            >a little less unsaid. <span aria-hidden="true">↗</span></span
+          >
+        </div>
+      </section>
+      <section class="ritual shell" id="about" aria-label="How ConfessMo works">
+        <div class="ritual-intro reveal">
+          <p class="eyebrow">NO PERFECT WORDS NEEDED</p>
+          <h2>Just a small<br /><em>weight off your chest.</em></h2>
+        </div>
+        <div class="ritual-step reveal">
+          <span class="step-index">01</span
+          ><svg class="icon"><use href="#i-pen" /></svg>
+          <h3>Write it out.</h3>
+          <p>A person, a feeling, a moment.<br />Start wherever you are.</p>
+        </div>
+        <div class="ritual-step reveal">
+          <span class="step-index">02</span
+          ><svg class="icon"><use href="#i-music" /></svg>
+          <h3>Give it a song.</h3>
+          <p>When words need a little help,<br />let the music say the rest.</p>
+        </div>
+        <div class="ritual-step reveal">
+          <span class="step-index">03</span
+          ><svg class="icon"><use href="#i-heart" /></svg>
+          <h3>Let it breathe.</h3>
+          <p>Save it to your wall.<br />Come back when you need to.</p>
+        </div>
+      </section>
+      <section
+        id="compose"
+        class="compose-section shell"
+        aria-labelledby="composeTitle"
+      >
+        <div class="section-heading reveal">
+          <div>
+            <p class="eyebrow">YOUR TURN TO LET IT OUT</p>
+            <h2 id="composeTitle">What’s on <em>your heart?</em></h2>
+          </div>
+          <span class="section-aside"
+            >a little honesty looks good on you ♡</span
+          >
+        </div>
+        <div class="compose-layout">
+          <form id="confessionForm" class="compose-card reveal" novalidate>
+            <div class="form-top">
+              <span class="pill"
+                ><span class="status-dot"></span> ALWAYS SIGNED
+                “ANONYMOUS”</span
+              ><span id="draftStatus" class="draft-status" role="status"
+                >Make yourself at home.</span
+              >
+            </div>
+            <div class="recipient-row">
+              <label for="recipient">To</label
+              ><input
+                id="recipient"
+                name="recipient"
+                type="text"
+                maxlength="40"
+                placeholder="someone, yourself, or no one in particular"
+                autocomplete="off"
+              /><span class="optional">optional</span>
+            </div>
+            <fieldset class="mood-fieldset">
+              <legend>How does it feel?</legend>
+              <div class="mood-options">
+                <label class="mood-option"
+                  ><input type="radio" name="mood" value="crush" checked /><span
+                    >♡ A little crush</span
+                  ></label
+                ><label class="mood-option"
+                  ><input type="radio" name="mood" value="gratitude" /><span
+                    >✧ Thankful</span
+                  ></label
+                ><label class="mood-option"
+                  ><input type="radio" name="mood" value="unsent" /><span
+                    >↗ Unsent</span
+                  ></label
+                ><label class="mood-option"
+                  ><input type="radio" name="mood" value="heartbreak" /><span
+                    >☾ Heartache</span
+                  ></label
+                ><label class="mood-option"
+                  ><input type="radio" name="mood" value="life" /><span
+                    >☀ Just life</span
+                  ></label
+                >
+              </div>
+            </fieldset>
+            <div class="message-field">
+              <label class="sr-only" for="confessionText">Your confession</label
+              ><textarea
+                id="confessionText"
+                name="message"
+                minlength="10"
+                maxlength="1000"
+                rows="7"
+                placeholder="I’ve been meaning to say…"
+                aria-describedby="messageHint messageError"
+                required
+              ></textarea>
+              <div class="message-meta">
+                <span id="messageHint"
+                  >From the heart. 10–1,000 characters.</span
+                ><span id="counter" aria-label="Character count"
+                  >0 / 1,000</span
+                >
+              </div>
+              <div class="character-track" aria-hidden="true">
+                <span id="characterProgress"></span>
+              </div>
+            </div>
+            <p id="messageError" class="field-error" role="alert" hidden></p>
+            <div class="attachment-row">
+              <button
+                id="addSongButton"
+                type="button"
+                class="attachment-button"
+              >
+                <svg class="icon"><use href="#i-music" /></svg
+                ><span>Add a soundtrack</span
+                ><span class="optional">optional</span>
+              </button>
+              <div id="attachedSong" class="attached-song" hidden></div>
+            </div>
+            <div class="form-bottom">
+              <button
+                id="previewButton"
+                type="button"
+                class="button button-ghost"
+              >
+                <svg class="icon"><use href="#i-eye" /></svg>Preview</button
+              ><button id="sendButton" type="submit" class="button">
+                <span>Post confession</span
+                ><svg class="icon"><use href="#i-send" /></svg>
+              </button>
+            </div>
+            <p class="storage-note">
+              <span class="status-dot"></span> Browser preview: posts stay in
+              this browser and aren’t shared with others.
+            </p>
+          </form>
+          <aside class="composer-aside reveal">
+            <div class="inspiration-card">
+              <p class="eyebrow">DON’T KNOW WHERE TO START?</p>
+              <h3>Borrow a<br /><em>first line.</em></h3>
+              <p class="aside-description">
+                Sometimes all you need is a little nudge.
+              </p>
+              <div class="writing-prompts">
+                <button
+                  type="button"
+                  data-prompt="I never told you this, but "
+                  data-mood="unsent"
+                >
+                  “I never told you this, but…” <span>↗</span></button
+                ><button
+                  type="button"
+                  data-prompt="Thank you for being the person who "
+                  data-mood="gratitude"
+                >
+                  “Thank you for being…” <span>↗</span></button
+                ><button
+                  type="button"
+                  data-prompt="Dear future me, I hope "
+                  data-mood="life"
+                >
+                  “Dear future me…” <span>↗</span>
+                </button>
+              </div>
+              <div class="aside-flower" aria-hidden="true">✳</div>
+            </div>
+            <div class="little-note">
+              <span aria-hidden="true">♡</span>
+              <p>
+                You don’t have to make it poetic.<br />You just have to make it
+                yours.
+              </p>
+            </div>
+          </aside>
+        </div>
+      </section>
+      <section
+        id="confessions"
+        class="wall-section shell"
+        aria-labelledby="wallTitle"
+      >
+        <div class="section-heading reveal">
+          <div>
+            <p class="eyebrow">LITTLE WORDS. BIG FEELINGS.</p>
+            <h2 id="wallTitle">The confession <em>wall.</em></h2>
+          </div>
+          <button
+            id="exportButton"
+            type="button"
+            class="text-link export-button"
+          >
+            <svg class="icon"><use href="#i-download" /></svg> Download my posts
+          </button>
+        </div>
+        <div class="wall-toolbar reveal">
+          <div class="wall-tabs" role="group" aria-label="Confession view">
+            <button
+              type="button"
+              data-view="all"
+              class="active"
+              aria-pressed="true"
+            >
+              All notes</button
+            ><button type="button" data-view="mine" aria-pressed="false">
+              My notes <span id="myCount">0</span></button
+            ><button type="button" data-view="saved" aria-pressed="false">
+              <svg class="icon"><use href="#i-bookmark" /></svg>Saved
+            </button>
+          </div>
+          <label class="wall-search"
+            ><svg class="icon"><use href="#i-search" /></svg
+            ><span class="sr-only">Search messages or recipients</span
+            ><input
+              id="wallSearch"
+              type="search"
+              placeholder="Find a word, a name, a feeling…"
+              autocomplete="off"
+          /></label>
+        </div>
+        <div class="wall-filters">
+          <div
+            id="moodFilters"
+            class="filter-chips"
+            role="group"
+            aria-label="Filter by mood"
+          >
+            <button
+              type="button"
+              data-mood="all"
+              class="active"
+              aria-pressed="true"
+            >
+              All feelings</button
+            ><button type="button" data-mood="crush" aria-pressed="false">
+              Crush</button
+            ><button type="button" data-mood="gratitude" aria-pressed="false">
+              Thankful</button
+            ><button type="button" data-mood="unsent" aria-pressed="false">
+              Unsent</button
+            ><button type="button" data-mood="heartbreak" aria-pressed="false">
+              Heartache</button
+            ><button type="button" data-mood="life" aria-pressed="false">
+              Life
+            </button>
+          </div>
+          <label class="sort-label"
+            ><span class="sr-only">Sort confessions</span
+            ><select id="sortOrder">
+              <option value="newest">Newest first</option>
+              <option value="popular">Most loved</option>
+              <option value="oldest">Oldest first</option>
+            </select></label
+          >
+        </div>
+        <p id="feedStatus" class="feed-status" role="status"></p>
+        <div id="confessionGrid" class="confession-grid"></div>
+        <div id="emptyState" class="empty-state" hidden>
+          <span aria-hidden="true">♡</span>
+          <h3 id="emptyTitle">A little room for your words.</h3>
+          <p id="emptyDescription">
+            Your first confession can start right here.
+          </p>
+          <button id="emptyAction" class="button button-ghost" type="button">
+            Write a confession <svg class="icon"><use href="#i-arrow" /></svg>
+          </button>
+        </div>
+        <div class="wall-end">
+          <span></span>
+          <p>someone, somewhere, feels it too. ♡</p>
+          <span></span>
+        </div>
+      </section>
+    </main>
+    <footer class="footer shell">
+      <a class="logo" href="#home">Confess<span>Mo.</span></a>
+      <p>For all the things we almost said.</p>
+      <a href="#compose"
+        >Leave a little piece of your heart <span aria-hidden="true">↗</span></a
+      >
+    </footer>
+    <noscript
+      ><div class="noscript">
+        Enable JavaScript to write, save, and read your confessions.
+      </div></noscript
+    >
+    <dialog
+      id="songDialog"
+      class="dialog song-dialog"
+      aria-labelledby="songDialogTitle"
+    >
+      <div class="dialog-inner">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">LET THE MUSIC SAY IT</p>
+            <h2 id="songDialogTitle">Pick a <em>soundtrack.</em></h2>
+          </div>
+          <button
+            type="button"
+            class="icon-button"
+            data-close="songDialog"
+            aria-label="Close song picker"
+          >
+            <svg class="icon"><use href="#i-close" /></svg>
+          </button>
+        </div>
+        <p class="dialog-description">
+          Search Spotify and attach any song you like.
+        </p>
+        <label class="wall-search song-search"
+          ><svg class="icon"><use href="#i-search" /></svg
+          ><span class="sr-only">Search Spotify</span
+          ><input
+            type="search"
+            id="songSearch"
+            placeholder="Search Spotify for a song or artist…"
+            autocomplete="off"
+        /></label>
+        <div
+          id="songList"
+          class="song-list"
+          aria-label="Spotify search results"
+        ></div>
+        <div class="custom-song">
+          <h3>Have another song in mind?</h3>
+          <p>Enter its details. A Spotify track link is optional.</p>
+          <form id="customSongForm" novalidate>
+            <div class="custom-song-fields">
+              <label
+                >Song title<input
+                  id="songTitle"
+                  maxlength="80"
+                  placeholder="Song title"
+                  required /></label
+              ><label
+                >Artist<input
+                  id="songArtist"
+                  maxlength="80"
+                  placeholder="Artist name"
+                  required
+              /></label>
+            </div>
+            <label
+              >Spotify track link <span class="optional">optional</span
+              ><input
+                id="songUrl"
+                type="url"
+                maxlength="300"
+                placeholder="https://open.spotify.com/track/…"
+            /></label>
+            <p id="songError" class="field-error" role="alert" hidden></p>
+            <button type="submit" class="button button-small">
+              Attach this song <svg class="icon"><use href="#i-music" /></svg>
+            </button>
+          </form>
+        </div>
+      </div>
+    </dialog>
+    <dialog
+      id="previewDialog"
+      class="dialog preview-dialog"
+      aria-labelledby="previewTitle"
+    >
+      <div class="dialog-inner">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">ONE LAST LOOK</p>
+            <h2 id="previewTitle">Your words, <em>out loud.</em></h2>
+          </div>
+          <button
+            type="button"
+            class="icon-button"
+            data-close="previewDialog"
+            aria-label="Close preview"
+          >
+            <svg class="icon"><use href="#i-close" /></svg>
+          </button>
+        </div>
+        <div id="previewContent"></div>
+        <p class="preview-note">
+          Saved here, on this browser. Your name won’t appear on the note.
+        </p>
+        <div class="dialog-actions">
+          <button
+            type="button"
+            class="button button-ghost"
+            data-close="previewDialog"
+          >
+            Keep writing</button
+          ><button id="publishPreview" type="button" class="button">
+            Post confession <svg class="icon"><use href="#i-send" /></svg>
+          </button>
+        </div>
+      </div>
+    </dialog>
+    <dialog
+      id="confirmDialog"
+      class="dialog confirm-dialog"
+      aria-labelledby="confirmTitle"
+    >
+      <div class="dialog-inner">
+        <div class="dialog-heading">
+          <h2 id="confirmTitle">Remove this <em>note?</em></h2>
+          <button
+            type="button"
+            class="icon-button"
+            data-close="confirmDialog"
+            aria-label="Cancel removal"
+          >
+            <svg class="icon"><use href="#i-close" /></svg>
+          </button>
+        </div>
+        <p>
+          You can download a copy of your posts before removing a note from this
+          browser.
+        </p>
+        <div class="dialog-actions">
+          <button
+            type="button"
+            class="button button-ghost"
+            data-close="confirmDialog"
+          >
+            Keep it</button
+          ><button id="confirmDelete" type="button" class="button">
+            Remove note
+          </button>
+        </div>
+      </div>
+    </dialog>
+    <div id="toast" class="toast" role="status" aria-live="polite">
+      <span class="toast-icon"
+        ><svg class="icon"><use href="#i-check" /></svg></span
+      ><span id="toastText"></span>
+    </div>
+  </body>
+</html>
