@@ -16,6 +16,8 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="Confessmo.css" />
+    <script src="Confessmo.assets.js" defer></script>
+    <script src="Confessmo.studio.js" defer></script>
     <script src="Confessmo.js" defer></script>
   </head>
   <body>
@@ -78,6 +80,30 @@
         <symbol id="i-play" viewBox="0 0 24 24">
           <path d="m8 4 12 8-12 8V4Z" />
         </symbol>
+        <symbol id="i-up-right" viewBox="0 0 24 24">
+          <path d="M7 17 17 7M8 7h9v9" />
+        </symbol>
+        <symbol id="i-crescent" viewBox="0 0 24 24">
+          <path d="M20 15.2A8.8 8.8 0 0 1 8.8 4 8.8 8.8 0 1 0 20 15.2Z" />
+        </symbol>
+        <symbol id="i-sun" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.41M17.66 6.34l1.41-1.41" />
+        </symbol>
+        <symbol id="i-image" viewBox="0 0 24 24">
+          <rect x="3" y="4" width="18" height="16" rx="3" />
+          <circle cx="9" cy="9" r="2" />
+          <path d="m5 18 5-5 3 3 2-2 4 4" />
+        </symbol>
+        <symbol id="i-vinyl" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" />
+          <circle cx="12" cy="12" r="3" />
+          <path d="M12 3a9 9 0 0 1 9 9M12 6a6 6 0 0 1 6 6" />
+        </symbol>
+        <symbol id="i-layout" viewBox="0 0 24 24">
+          <rect x="3" y="4" width="18" height="16" rx="2" />
+          <path d="M3 10h18M10 10v10" />
+        </symbol>
       </defs>
     </svg>
     <a href="#compose" class="skip-link">Skip to confession form</a>
@@ -90,7 +116,7 @@
       <nav class="navbar shell" aria-label="Main navigation">
         <a class="logo" href="#home" aria-label="ConfessMo home"
           >Confess<span>Mo.</span
-          ><span class="logo-heart" aria-hidden="true">♡</span></a
+          ><span class="logo-heart" aria-hidden="true"><svg class="icon"><use href="#i-heart" /></svg></span></a
         >
         <div class="desktop-nav">
           <a href="#home">Home</a><a href="#confessions">The wall</a
@@ -130,7 +156,7 @@
       <section class="hero shell" id="home" aria-labelledby="heroTitle">
         <div class="hero-copy">
           <p class="eyebrow hero-enter">
-            <span class="tiny-star">✳</span> A LITTLE SPACE. A LITTLE COURAGE.
+            <span class="tiny-star"><svg class="decor-icon" aria-hidden="true"><use href="#i-spark" /></svg></span> A LITTLE SPACE. A LITTLE COURAGE.
           </p>
           <h1 id="heroTitle" class="hero-enter">
             Some things are<br />easier <em>left here.</em>
@@ -146,11 +172,11 @@
               >Write a confession
               <svg class="icon"><use href="#i-arrow" /></svg></a
             ><a href="#confessions" class="text-link"
-              >Read a little <span aria-hidden="true">↗</span></a
+              >Read a little <span class="inline-arrow" aria-hidden="true"><svg class="decor-icon" aria-hidden="true"><use href="#i-up-right" /></svg></span></a
             >
           </div>
           <div class="hero-footnote hero-enter">
-            <span class="small-heart" aria-hidden="true">♡</span
+            <span class="small-heart" aria-hidden="true"><svg class="decor-icon"><use href="#i-heart" /></svg></span
             ><span>No account. No pressure. Just your words.</span>
           </div>
         </div>
@@ -161,8 +187,8 @@
         >
           <div class="orbit orbit-one"></div>
           <div class="orbit orbit-two"></div>
-          <span class="art-star star-one">✳</span
-          ><span class="art-star star-two">✧</span>
+          <span class="art-star star-one"><svg class="decor-icon" aria-hidden="true"><use href="#i-spark" /></svg></span
+          ><span class="art-star star-two"><svg class="decor-icon" aria-hidden="true"><use href="#i-spark" /></svg></span>
           <div class="record-sleeve">
             <div class="sleeve-heading">THE THINGS<br />WE DON'T SAY.</div>
             <span class="sleeve-bottom"
@@ -179,7 +205,7 @@
           <div class="floating-note note-one">
             <span>dear you,</span>
             <p>I still smile when<br />your name pops up.</p>
-            <span class="note-heart">♡</span>
+            <span class="note-heart"><svg class="decor-icon" aria-hidden="true"><use href="#i-heart" /></svg></span>
           </div>
           <div class="floating-note note-two">
             <span class="wave" aria-hidden="true"
@@ -188,7 +214,7 @@
             <div><small>EVERY FEELING HAS</small><b>a soundtrack.</b></div>
           </div>
           <span class="art-caption"
-            >a little less unsaid. <span aria-hidden="true">↗</span></span
+            >a little less unsaid. <span class="inline-arrow" aria-hidden="true"><svg class="decor-icon" aria-hidden="true"><use href="#i-up-right" /></svg></span></span
           >
         </div>
       </section>
@@ -227,7 +253,7 @@
             <h2 id="composeTitle">What’s on <em>your heart?</em></h2>
           </div>
           <span class="section-aside"
-            >a little honesty looks good on you ♡</span
+            >a little honesty looks good on you <span class="inline-decor"><svg class="decor-icon" aria-hidden="true"><use href="#i-heart" /></svg></span></span
           >
         </div>
         <div class="compose-layout">
@@ -256,23 +282,23 @@
               <div class="mood-options">
                 <label class="mood-option"
                   ><input type="radio" name="mood" value="crush" checked /><span
-                    >♡ A little crush</span
+                    ><svg class="mood-mini-icon"><use href="#i-heart" /></svg>A little crush</span
                   ></label
                 ><label class="mood-option"
                   ><input type="radio" name="mood" value="gratitude" /><span
-                    >✧ Thankful</span
+                    ><svg class="mood-mini-icon"><use href="#i-spark" /></svg>Thankful</span
                   ></label
                 ><label class="mood-option"
                   ><input type="radio" name="mood" value="unsent" /><span
-                    >↗ Unsent</span
+                    ><svg class="mood-mini-icon"><use href="#i-up-right" /></svg>Unsent</span
                   ></label
                 ><label class="mood-option"
                   ><input type="radio" name="mood" value="heartbreak" /><span
-                    >☾ Heartache</span
+                    ><svg class="mood-mini-icon"><use href="#i-crescent" /></svg>Heartache</span
                   ></label
                 ><label class="mood-option"
                   ><input type="radio" name="mood" value="life" /><span
-                    >☀ Just life</span
+                    ><svg class="mood-mini-icon"><use href="#i-sun" /></svg>Just life</span
                   ></label
                 >
               </div>
@@ -301,6 +327,116 @@
               </div>
             </div>
             <p id="messageError" class="field-error" role="alert" hidden></p>
+
+            <fieldset class="card-studio" aria-labelledby="cardStudioLegend">
+              <legend id="cardStudioLegend">Style your confession card</legend>
+
+              <div class="studio-group">
+                <div class="studio-label-row">
+                  <span class="studio-label">Card design</span>
+                  <span class="optional">changes the card only</span>
+                </div>
+                <div class="design-options" role="radiogroup" aria-label="Card design">
+                  <label class="design-option">
+                    <input type="radio" name="cardDesign" value="classic" checked />
+                    <span><svg class="icon"><use href="#i-pen" /></svg><b>Letterpress</b><small>paper + foil</small></span>
+                  </label>
+                  <label class="design-option">
+                    <input type="radio" name="cardDesign" value="polaroid" />
+                    <span><svg class="icon"><use href="#i-image" /></svg><b>Gallery</b><small>framed art</small></span>
+                  </label>
+                  <label class="design-option">
+                    <input type="radio" name="cardDesign" value="kawaii" />
+                    <span><svg class="icon"><use href="#i-spark" /></svg><b>Cloud Couture</b><small>soft + sticker</small></span>
+                  </label>
+                  <label class="design-option">
+                    <input type="radio" name="cardDesign" value="vinyl" />
+                    <span><svg class="icon"><use href="#i-vinyl" /></svg><b>Record Atelier</b><small>album sleeve</small></span>
+                  </label>
+                  <label class="design-option">
+                    <input type="radio" name="cardDesign" value="midnight" />
+                    <span><svg class="icon"><use href="#i-crescent" /></svg><b>Nocturne</b><small>night sky</small></span>
+                  </label>
+                  <label class="design-option">
+                    <input type="radio" name="cardDesign" value="editorial" />
+                    <span><svg class="icon"><use href="#i-layout" /></svg><b>Editorial</b><small>magazine</small></span>
+                  </label>
+                  <label class="design-option">
+                    <input type="radio" name="cardDesign" value="glass" />
+                    <span><svg class="icon"><use href="#i-eye" /></svg><b>Glass House</b><small>frosted</small></span>
+                  </label>
+                  <label class="design-option">
+                    <input type="radio" name="cardDesign" value="silk" />
+                    <span><svg class="icon"><use href="#i-send" /></svg><b>Silk</b><small>satin sheen</small></span>
+                  </label>
+                  <label class="design-option">
+                    <input type="radio" name="cardDesign" value="maison" />
+                    <span><svg class="icon"><use href="#i-sun" /></svg><b>Maison Gold</b><small>ivory + gold</small></span>
+                  </label>
+                  <label class="design-option">
+                    <input type="radio" name="cardDesign" value="velvet" />
+                    <span><svg class="icon"><use href="#i-heart" /></svg><b>Velvet Rouge</b><small>burgundy</small></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="studio-group">
+                <div class="studio-label-row">
+                  <span class="studio-label">Theme color</span>
+                  <span class="optional">also used for image export</span>
+                </div>
+                <div class="compose-theme-swatches" role="radiogroup" aria-label="Card color theme">
+                  <label title="Blush"><input type="radio" name="cardTheme" value="blush" checked /><span style="--theme-dot:#F0B8C9"></span></label>
+                  <label title="Peach"><input type="radio" name="cardTheme" value="peach" /><span style="--theme-dot:#F2B991"></span></label>
+                  <label title="Sky"><input type="radio" name="cardTheme" value="sky" /><span style="--theme-dot:#B9D7EE"></span></label>
+                  <label title="Matcha"><input type="radio" name="cardTheme" value="matcha" /><span style="--theme-dot:#CFE1A6"></span></label>
+                  <label title="Lilac"><input type="radio" name="cardTheme" value="lilac" /><span style="--theme-dot:#D4C2E6"></span></label>
+                  <label title="Cream"><input type="radio" name="cardTheme" value="cream" /><span style="--theme-dot:#E8CEA1"></span></label>
+                  <label title="Champagne"><input type="radio" name="cardTheme" value="champagne" /><span style="--theme-dot:#E6D3A8"></span></label>
+                  <label title="Pearl"><input type="radio" name="cardTheme" value="pearl" /><span style="--theme-dot:#DAD6E6"></span></label>
+                  <label title="Rose gold"><input type="radio" name="cardTheme" value="rosegold" /><span style="--theme-dot:#E3A99B"></span></label>
+                </div>
+              </div>
+
+              <div class="studio-grid">
+                <div class="studio-group studio-photo">
+                  <div class="studio-label-row">
+                    <span class="studio-label">One photo</span>
+                    <span class="optional">optional · max 4 MB source</span>
+                  </div>
+                  <label class="photo-picker" for="confessionPhoto">
+                    <svg class="icon"><use href="#i-image" /></svg>
+                    <span><b>Add a picture</b><small>compressed before browser storage</small></span>
+                    <input id="confessionPhoto" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" />
+                  </label>
+                  <div id="photoPreviewBox" class="photo-preview-box" hidden>
+                    <img id="photoPreviewImage" alt="Selected confession photo preview" />
+                    <div>
+                      <strong id="photoPreviewName">Photo ready</strong>
+                      <span id="photoPreviewSize"></span>
+                    </div>
+                    <button id="removePhotoButton" type="button" class="icon-button" aria-label="Remove selected photo">
+                      <svg class="icon"><use href="#i-close" /></svg>
+                    </button>
+                  </div>
+                  <p id="photoStatus" class="studio-help">The original file is not saved. A smaller JPEG copy is created in your browser.</p>
+                </div>
+
+                <div class="studio-group studio-music">
+                  <div class="studio-label-row">
+                    <span class="studio-label">Music appearance</span>
+                    <span class="optional">when a song is attached</span>
+                  </div>
+                  <div class="music-style-options" role="radiogroup" aria-label="Music appearance">
+                    <label><input type="radio" name="musicStyle" value="vinyl" /><span><svg class="icon"><use href="#i-vinyl" /></svg>Vinyl</span></label>
+                    <label><input type="radio" name="musicStyle" value="box" checked /><span><svg class="icon"><use href="#i-layout" /></svg>Box</span></label>
+                    <label><input type="radio" name="musicStyle" value="text" /><span><svg class="icon"><use href="#i-music" /></svg>Text</span></label>
+                    <label><input type="radio" name="musicStyle" value="none" /><span><svg class="icon"><use href="#i-close" /></svg>None</span></label>
+                  </div>
+                </div>
+              </div>
+            </fieldset>
+
             <div class="attachment-row">
               <button
                 id="addSongButton"
@@ -343,25 +479,25 @@
                   data-prompt="I never told you this, but "
                   data-mood="unsent"
                 >
-                  “I never told you this, but…” <span>↗</span></button
+                  “I never told you this, but…” <span class="prompt-arrow"><svg class="decor-icon" aria-hidden="true"><use href="#i-up-right" /></svg></span></button
                 ><button
                   type="button"
                   data-prompt="Thank you for being the person who "
                   data-mood="gratitude"
                 >
-                  “Thank you for being…” <span>↗</span></button
+                  “Thank you for being…” <span class="prompt-arrow"><svg class="decor-icon" aria-hidden="true"><use href="#i-up-right" /></svg></span></button
                 ><button
                   type="button"
                   data-prompt="Dear future me, I hope "
                   data-mood="life"
                 >
-                  “Dear future me…” <span>↗</span>
+                  “Dear future me…” <span class="prompt-arrow"><svg class="decor-icon" aria-hidden="true"><use href="#i-up-right" /></svg></span>
                 </button>
               </div>
-              <div class="aside-flower" aria-hidden="true">✳</div>
+              <div class="aside-flower" aria-hidden="true"><svg class="decor-icon" aria-hidden="true"><use href="#i-spark" /></svg></div>
             </div>
             <div class="little-note">
-              <span aria-hidden="true">♡</span>
+              <span class="little-note-heart" aria-hidden="true"><svg class="decor-icon" aria-hidden="true"><use href="#i-heart" /></svg></span>
               <p>
                 You don’t have to make it poetic.<br />You just have to make it
                 yours.
@@ -451,7 +587,7 @@
         <p id="feedStatus" class="feed-status" role="status"></p>
         <div id="confessionGrid" class="confession-grid"></div>
         <div id="emptyState" class="empty-state" hidden>
-          <span aria-hidden="true">♡</span>
+          <span class="empty-heart" aria-hidden="true"><svg class="decor-icon" aria-hidden="true"><use href="#i-heart" /></svg></span>
           <h3 id="emptyTitle">A little room for your words.</h3>
           <p id="emptyDescription">
             Your first confession can start right here.
@@ -462,7 +598,7 @@
         </div>
         <div class="wall-end">
           <span></span>
-          <p>someone, somewhere, feels it too. ♡</p>
+          <p>someone, somewhere, feels it too. <span class="inline-decor"><svg class="decor-icon" aria-hidden="true"><use href="#i-heart" /></svg></span></p>
           <span></span>
         </div>
       </section>
@@ -471,7 +607,7 @@
       <a class="logo" href="#home">Confess<span>Mo.</span></a>
       <p>For all the things we almost said.</p>
       <a href="#compose"
-        >Leave a little piece of your heart <span aria-hidden="true">↗</span></a
+        >Leave a little piece of your heart <span class="inline-arrow" aria-hidden="true"><svg class="decor-icon" aria-hidden="true"><use href="#i-up-right" /></svg></span></a
       >
     </footer>
     <noscript
@@ -585,6 +721,59 @@
           ><button id="publishPreview" type="button" class="button">
             Post confession <svg class="icon"><use href="#i-send" /></svg>
           </button>
+        </div>
+      </div>
+    </dialog>
+    <dialog id="studioDialog" class="dialog studio-dialog" aria-labelledby="studioTitle">
+      <div class="dialog-inner sx-inner">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">STORY STUDIO</p>
+            <h2 id="studioTitle">Make it <em>shareable.</em></h2>
+          </div>
+          <button type="button" id="studioClose" class="icon-button" data-close="studioDialog" aria-label="Close Story Studio">
+            <svg class="icon"><use href="#i-close" /></svg>
+          </button>
+        </div>
+        <div class="sx-body">
+          <div class="sx-stage">
+            <div class="sx-frame"><canvas id="studioCanvas" width="540" height="960" role="img" aria-label="Live preview of your confession card"></canvas></div>
+            <div id="studioTransport" class="sx-transport">
+              <button type="button" id="studioPlay" class="sx-play" data-state="pause" aria-label="Pause preview"><span class="sx-ic-pause"></span><span class="sx-ic-play"></span></button>
+              <input id="studioScrub" class="sx-scrub" type="range" min="0" max="1000" value="0" aria-label="Scrub the animation" />
+              <span id="studioTime" class="sx-time">0.0s / 7.5s</span>
+            </div>
+          </div>
+          <div class="sx-panel">
+            <div class="sx-tabs" role="group" aria-label="Export size">
+              <button type="button" data-shape="story" aria-pressed="true">Story <small>9:16</small></button>
+              <button type="button" data-shape="post" aria-pressed="false">Post <small>4:5</small></button>
+            </div>
+            <p class="sx-label">Design <span>changes this export only</span></p>
+            <div id="studioDesigns" class="sx-designs"></div>
+            <p class="sx-label">Color</p>
+            <div id="studioThemes" class="sx-swatches"></div>
+            <div id="studioVideoBlock" class="sx-video">
+              <button type="button" id="studioVideo" class="button sx-video-btn"><svg class="icon"><use href="#i-play" /></svg><span>Animated Story · 7.5s</span></button>
+              <p class="sx-hint">Clouds drift, the record spins, your words appear line by line, then ConfessMo.</p>
+            </div>
+            <div id="studioProgress" class="sx-progress" hidden>
+              <div class="sx-track"><div id="studioBar" class="sx-bar"></div></div>
+              <div class="sx-progress-row"><span id="studioProgressText">Recording…</span><button type="button" id="studioCancel" class="sx-link">Cancel</button></div>
+            </div>
+            <div id="studioReady" class="sx-ready" hidden>
+              <p id="studioReadyText"></p>
+              <div class="sx-ready-actions">
+                <button type="button" id="studioSave" class="button"><svg class="icon"><use href="#i-download" /></svg>Save video</button>
+                <button type="button" id="studioShare" class="button button-ghost" hidden>Share…</button>
+              </div>
+            </div>
+            <div class="sx-stills">
+              <button type="button" id="studioPng" class="button button-ghost">Save PNG</button>
+              <button type="button" id="studioJpg" class="button button-ghost">Save JPG</button>
+            </div>
+            <p id="studioHelp" class="sx-help"></p>
+          </div>
         </div>
       </div>
     </dialog>
