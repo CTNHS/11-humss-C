@@ -17,11 +17,11 @@
     motion: "confessmo.motion.v2",
   };
   const MOODS = {
-    crush: { label: "A little crush", symbol: "♡", color: "#c7967b" },
-    gratitude: { label: "Thankful", symbol: "✧", color: "#b9b18b" },
-    unsent: { label: "Unsent", symbol: "↗", color: "#baa48f" },
-    heartbreak: { label: "Heartache", symbol: "☾", color: "#be9f9b" },
-    life: { label: "Just life", symbol: "☀", color: "#ccae76" },
+    crush: { label: "A little crush", icon: "heart", color: "#c7967b" },
+    gratitude: { label: "Thankful", icon: "spark", color: "#b9b18b" },
+    unsent: { label: "Unsent", icon: "up-right", color: "#baa48f" },
+    heartbreak: { label: "Heartache", icon: "crescent", color: "#be9f9b" },
+    life: { label: "Just life", icon: "sun", color: "#ccae76" },
   };
 
   // Card/export-only palettes. These do not change the rest of the website.
@@ -80,6 +80,33 @@
       accent: "#C79C68",
       tint: "#F3E5CA",
     },
+    champagne: {
+      label: "Champagne",
+      bg: "#F6EDD8",
+      panel: "#FFFBF2",
+      ink: "#4F4130",
+      soft: "#E6D3A8",
+      accent: "#B8935A",
+      tint: "#F1E4C4",
+    },
+    pearl: {
+      label: "Pearl",
+      bg: "#EEECF3",
+      panel: "#FDFDFF",
+      ink: "#43404F",
+      soft: "#DAD6E6",
+      accent: "#9A93B5",
+      tint: "#E6E3EF",
+    },
+    rosegold: {
+      label: "Rose gold",
+      bg: "#F8E7E1",
+      panel: "#FFFAF8",
+      ink: "#58403B",
+      soft: "#E3A99B",
+      accent: "#C98577",
+      tint: "#F3D5CC",
+    },
   };
   const DEFAULT_THEME_BY_MOOD = {
     crush: "blush",
@@ -88,25 +115,34 @@
     heartbreak: "lilac",
     life: "cream",
   };
+  const asset = (key, path) => (window.CONFESSMO_ASSETS && window.CONFESSMO_ASSETS[key]) || path;
   const CHARACTER_STICKERS = {
     chiikawa: {
       label: "Chiikawa",
-      src: "assets/chiikawa.jpg",
+      src: asset("chiikawa", "assets/chiikawa.jpg"),
       crop: { x: 0, y: 0, width: 1, height: 1 },
     },
     usagi: {
       label: "Usagi",
-      src: "assets/usagi.webp",
+      src: asset("usagi", "assets/usagi.webp"),
       // Crop the lower text area while keeping the supplied art untouched.
       crop: { x: 0.08, y: 0.03, width: 0.84, height: 0.77 },
     },
     hachiware: {
       label: "Hachiware",
-      src: "assets/hachiware.jpg",
+      src: asset("hachiware", "assets/hachiware.jpg"),
       crop: { x: 0.06, y: 0.03, width: 0.88, height: 0.78 },
     },
   };
   const CHARACTER_ORDER = ["chiikawa", "usagi", "hachiware"];
+  const CARD_DESIGNS = ["classic", "polaroid", "kawaii", "vinyl", "midnight", "editorial", "glass", "silk", "maison", "velvet"];
+  const DESIGN_LABELS = { classic: "Letterpress", polaroid: "Gallery", kawaii: "Cloud Couture", vinyl: "Record Atelier", midnight: "Nocturne", editorial: "Editorial", glass: "Glass House", silk: "Silk", maison: "Maison Gold", velvet: "Velvet Rouge" };
+  const MUSIC_STYLES = ["vinyl", "box", "text", "none"];
+  const MEDIA_DB_NAME = "confessmo-media-v1";
+  const MEDIA_STORE = "photos";
+  const MAX_SOURCE_PHOTO_BYTES = 4 * 1024 * 1024;
+  let selectedPhotoBlob = null;
+  let selectedPhotoUrl = "";
   // Curated suggestions, not live Spotify search results. No lyrics or album art are copied.
   const SONGS = [
     { title: "Pasilyo", artist: "SunKissed Lola", color: "#b8997f" },
@@ -132,7 +168,7 @@
       to: "the friend who stayed",
       mood: "gratitude",
       message:
-        "May your success be louder than your pains, doubts, and struggles. I pray the life you're building is everything you once cried for.",
+        "You never needed the whole story to sit beside me. Thank you for making quiet feel less lonely.",
       song: SONGS[4],
     },
     {
@@ -202,6 +238,159 @@
     use.setAttribute("href", `#i-${name}`);
     svg.append(use);
     return svg;
+  }
+
+  let mediaDbPromise = null;
+  function openMediaDb() {
+    if (mediaDbPromise) return mediaDbPromise;
+    mediaDbPromise = new Promise((resolve, reject) => {
+      if (!("indexedDB" in window)) {
+        reject(new Error("IndexedDB unavailable"));
+        return;
+      }
+      const request = indexedDB.open(MEDIA_DB_NAME, 1);
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains(MEDIA_STORE))
+          db.createObjectStore(MEDIA_STORE);
+      };
+      request.onsuccess = () => {
+        const db = request.result;
+        db.onversionchange = () => {
+          db.close();
+          mediaDbPromise = null;
+        };
+        resolve(db);
+      };
+      request.onerror = () => reject(request.error || new Error("Media storage unavailable"));
+    });
+    mediaDbPromise.catch(() => {
+      mediaDbPromise = null;
+    });
+    return mediaDbPromise;
+  }
+
+  async function mediaStorePut(id, blob) {
+    const db = await openMediaDb();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(MEDIA_STORE, "readwrite");
+      tx.objectStore(MEDIA_STORE).put(blob, id);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => {
+        reject(tx.error || new Error("Photo could not be stored"));
+      };
+    });
+  }
+
+  async function mediaStoreGet(id) {
+    try {
+      const db = await openMediaDb();
+      return await new Promise((resolve, reject) => {
+        const tx = db.transaction(MEDIA_STORE, "readonly");
+        const request = tx.objectStore(MEDIA_STORE).get(id);
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error);
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  async function mediaStoreDelete(id) {
+    try {
+      const db = await openMediaDb();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(MEDIA_STORE, "readwrite");
+        tx.objectStore(MEDIA_STORE).delete(id);
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch {
+      /* A missing photo store should never block deleting a confession. */
+    }
+  }
+
+  function canvasToBlob(canvas, type, quality) {
+    return new Promise((resolve, reject) =>
+      canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error("Image compression failed"))),
+        type,
+        quality,
+      ),
+    );
+  }
+
+  function loadLocalImage(fileOrBlob) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(fileOrBlob);
+      const image = new Image();
+      image.onload = () => {
+        URL.revokeObjectURL(url);
+        resolve(image);
+      };
+      image.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error("That image could not be opened"));
+      };
+      image.src = url;
+    });
+  }
+
+  async function compressPhoto(file) {
+    if (!file || !file.type.startsWith("image/"))
+      throw new Error("Choose an image file.");
+    if (file.size > MAX_SOURCE_PHOTO_BYTES)
+      throw new Error("Please choose a photo that is 4 MB or smaller.");
+
+    const image = await loadLocalImage(file);
+    const maxSide = 1440;
+    const ratio = Math.min(1, maxSide / Math.max(image.naturalWidth, image.naturalHeight));
+    let width = Math.max(1, Math.round(image.naturalWidth * ratio));
+    let height = Math.max(1, Math.round(image.naturalHeight * ratio));
+    let quality = 0.82;
+    let blob = null;
+
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d", { alpha: false });
+      if (!ctx) throw new Error("Photo compression is unavailable.");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(image, 0, 0, width, height);
+      blob = await canvasToBlob(canvas, "image/jpeg", quality);
+      if (blob.size <= 700 * 1024 || attempt === 3) break;
+      quality = Math.max(0.62, quality - 0.08);
+      width = Math.round(width * 0.88);
+      height = Math.round(height * 0.88);
+    }
+    return blob;
+  }
+
+  function clearSelectedPhoto() {
+    selectedPhotoBlob = null;
+    if (selectedPhotoUrl) URL.revokeObjectURL(selectedPhotoUrl);
+    selectedPhotoUrl = "";
+    $("#confessionPhoto").value = "";
+    $("#photoPreviewBox").hidden = true;
+    $("#photoPreviewImage").removeAttribute("src");
+    $("#photoStatus").textContent =
+      "The original file is not saved. A smaller JPEG copy is created in your browser.";
+  }
+
+  function updatePhotoPreview(blob, originalName = "Photo") {
+    if (selectedPhotoUrl) URL.revokeObjectURL(selectedPhotoUrl);
+    selectedPhotoUrl = URL.createObjectURL(blob);
+    $("#photoPreviewImage").src = selectedPhotoUrl;
+    $("#photoPreviewName").textContent = originalName;
+    $("#photoPreviewSize").textContent =
+      `${Math.max(1, Math.round(blob.size / 1024)).toLocaleString()} KB compressed`;
+    $("#photoPreviewBox").hidden = false;
+    $("#photoStatus").textContent =
+      "Ready. Only the compressed copy will be stored with this browser-only post.";
   }
   function toast(message, error = false) {
     clearTimeout(toastTimer);
@@ -291,6 +480,10 @@
       typeof note.to === "string" &&
       note.to.length <= 40 &&
       Object.hasOwn(MOODS, note.mood) &&
+      (note.design === undefined || CARD_DESIGNS.includes(note.design)) &&
+      (note.musicStyle === undefined || MUSIC_STYLES.includes(note.musicStyle)) &&
+      (note.theme === undefined || Object.hasOwn(EXPORT_THEMES, note.theme)) &&
+      (note.hasPhoto === undefined || typeof note.hasPhoto === "boolean") &&
       typeof note.createdAt === "number" &&
       Number.isFinite(new Date(note.createdAt).getTime()) &&
       note.createdAt > 0
@@ -305,18 +498,32 @@
       data.version !== 2 ||
       !Array.isArray(data.posts) ||
       !Array.isArray(data.hearts) ||
-      !Array.isArray(data.saved) ||
-      !data.posts.every(isValidPost)
+      !Array.isArray(data.saved)
     ) {
       throw new Error("Invalid saved data");
     }
-    const posts = data.posts.map((post) => ({
+    // One damaged post must never lock the whole app: keep a backup, skip only the bad ones.
+    const goodPosts = data.posts.filter(isValidPost);
+    if (goodPosts.length !== data.posts.length) {
+      try {
+        if (!localStorage.getItem(`${KEYS.state}.backup`)) localStorage.setItem(`${KEYS.state}.backup`, raw);
+      } catch {
+        /* backup is best-effort */
+      }
+    }
+    const posts = goodPosts.map((post) => ({
       id: post.id,
       to: post.to,
       mood: post.mood,
       message: post.message,
       createdAt: post.createdAt,
       song: normalizeSong(post.song),
+      design: CARD_DESIGNS.includes(post.design) ? post.design : "classic",
+      musicStyle: MUSIC_STYLES.includes(post.musicStyle) ? post.musicStyle : "box",
+      theme: Object.hasOwn(EXPORT_THEMES, post.theme)
+        ? post.theme
+        : DEFAULT_THEME_BY_MOOD[post.mood] || "cream",
+      hasPhoto: post.hasPhoto === true,
     }));
     const ids = new Set([...posts, ...EXAMPLES].map((post) => post.id));
     return {
@@ -345,11 +552,18 @@
     }
   }
   function getDraft() {
+    const mood = $('input[name="mood"]:checked', form).value;
     return {
       to: recipient.value,
       message: textarea.value,
-      mood: $('input[name="mood"]:checked', form).value,
+      mood,
       song: selectedSong,
+      design: $('input[name="cardDesign"]:checked', form)?.value || "classic",
+      musicStyle: $('input[name="musicStyle"]:checked', form)?.value || "box",
+      theme:
+        $('input[name="cardTheme"]:checked', form)?.value ||
+        DEFAULT_THEME_BY_MOOD[mood] ||
+        "cream",
     };
   }
   function saveDraft() {
@@ -525,12 +739,27 @@
   function songMessage(list, text) {
     list.replaceChildren(node("p", "song-empty", text));
   }
+  function renderSuggestions(list, query, intro) {
+    const q = query.toLowerCase();
+    const pool = SONGS.filter((song) => !q || `${song.title} ${song.artist}`.toLowerCase().includes(q));
+    list.replaceChildren(node("p", "song-empty", pool.length ? intro : "No match in our picks. Add your song below."));
+    pool.forEach((raw) => {
+      const song = normalizeSong(raw);
+      if (!song) return;
+      const button = node("button", "song-choice");
+      button.type = "button";
+      button.setAttribute("aria-label", `Attach ${song.title} by ${song.artist}`);
+      button.append(...songParts(song), icon("arrow"));
+      button.addEventListener("click", () => attachSong(song));
+      list.append(button);
+    });
+  }
   async function renderSongs() {
     const query = $("#songSearch").value.trim();
     const list = $("#songList");
     const seq = ++songSearchSeq;
     if (query.length < 2) {
-      songMessage(list, "Type a song or artist to search Spotify.");
+      renderSuggestions(list, "", "Popular picks — or search Spotify above.");
       return;
     }
     songMessage(list, "Searching Spotify…");
@@ -546,12 +775,12 @@
       songs = data.map(normalizeSong).filter((song) => song && song.id);
     } catch (error) {
       if (seq !== songSearchSeq) return;
-      $(".custom-song").hidden = false;
-      songMessage(
+      renderSuggestions(
         list,
+        query,
         error.message === "429"
-          ? "Spotify is busy right now. Try again in a moment."
-          : "Spotify search isn’t available right now. You can add a song below.",
+          ? "Spotify is busy right now. Here are some picks, or add your own below."
+          : "Live Spotify search isn’t available here. Here are some picks, or add your own below.",
       );
       return;
     }
@@ -581,8 +810,7 @@
     $("#songSearch").focus();
   }
   $("#addSongButton").addEventListener("click", openSongPicker);
-  // Manual entry stays hidden unless Spotify search is unreachable.
-  $(".custom-song").hidden = true;
+  $(".custom-song").hidden = false;
   $("#songSearch").addEventListener("input", () => {
     clearTimeout(songSearchTimer);
     songSearchTimer = setTimeout(renderSongs, 350);
@@ -657,20 +885,33 @@
   }
   function makeCard(note, preview = false) {
     const mood = MOODS[note.mood] || MOODS.life;
+    const design = CARD_DESIGNS.includes(note.design) ? note.design : "classic";
+    const musicStyle = MUSIC_STYLES.includes(note.musicStyle) ? note.musicStyle : "box";
+    const chosenTheme =
+      Object.hasOwn(EXPORT_THEMES, note.theme)
+        ? note.theme
+        : DEFAULT_THEME_BY_MOOD[note.mood] || "cream";
     const card = node("article", "confession-card");
     card.dataset.id = note.id || "preview";
-    card.classList.add(`mood-${note.mood || "life"}`);
+    card.dataset.design = design;
+    card.dataset.musicStyle = musicStyle;
+    card.classList.add(`mood-${note.mood || "life"}`, `design-${design}`);
     card.style.setProperty("--mood-accent", mood.color);
 
     const decor = node("div", "card-decor");
     decor.setAttribute("aria-hidden", "true");
-    decor.innerHTML = `
-      <span class="card-cloud cloud-one"></span>
-      <span class="card-cloud cloud-two"></span>
-      <span class="card-spark spark-one">✦</span>
-      <span class="card-spark spark-two">♡</span>
-      <span class="card-spark spark-three">✧</span>
-    `;
+    decor.append(
+      node("span", "card-cloud cloud-one"),
+      node("span", "card-cloud cloud-two"),
+    );
+    const sparkOne = icon("spark");
+    sparkOne.classList.add("card-spark", "spark-one");
+    const sparkTwo = icon("heart");
+    sparkTwo.classList.add("card-spark", "spark-two");
+    const sparkThree = icon("spark");
+    sparkThree.classList.add("card-spark", "spark-three");
+    decor.append(sparkOne, sparkTwo, sparkThree);
+
     const characterKey = characterForNote(note);
     const character = CHARACTER_STICKERS[characterKey];
     const sticker = node("span", `card-character character-${characterKey}`);
@@ -683,8 +924,34 @@
     decor.append(sticker);
     card.append(decor);
 
+    // Premium finish layer: paper grain, foil frame, ornaments. Each design styles these in CSS.
+    const luxe = node("div", "card-luxe");
+    luxe.setAttribute("aria-hidden", "true");
+    luxe.append(
+      node("i", "lx-grain"),
+      node("i", "lx-frame"),
+      node("i", "lx-corner lx-tl"),
+      node("i", "lx-corner lx-tr"),
+      node("i", "lx-corner lx-bl"),
+      node("i", "lx-corner lx-br"),
+    );
+    if (design === "editorial" || design === "polaroid") {
+      let h = 0;
+      const seed = String(note.id || note.message || "x");
+      for (let i = 0; i < seed.length; i += 1) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+      luxe.append(
+        node("span", "lx-plate", design === "editorial" ? `VOL. 01 — Nº ${(h % 900) + 100}` : "THE GALLERY"),
+      );
+    }
+    card.append(luxe);
+    setCardTheme(card, chosenTheme);
+
     const header = node("div", "card-header");
-    header.append(node("span", "mood-tag", `${mood.symbol} ${mood.label}`));
+    const moodTag = node("span", "mood-tag");
+    const moodIcon = icon(mood.icon);
+    moodIcon.classList.add("mood-tag-icon");
+    moodTag.append(moodIcon, document.createTextNode(mood.label));
+    header.append(moodTag);
     if (note.example) header.append(node("span", "card-example", "EXAMPLE"));
     else if (preview) header.append(node("span", "card-example", "PREVIEW"));
     else {
@@ -696,6 +963,31 @@
       header,
       node("p", "card-recipient", `To ${note.to || "whoever needs this"}`),
     );
+
+    if (note.hasPhoto || note._photoBlob) {
+      const photoFrame = node("div", "card-photo");
+      const photoImage = node("img", "card-photo-image");
+      photoImage.alt = "Photo attached to this confession";
+      photoImage.decoding = "async";
+      photoFrame.append(photoImage);
+      card.append(photoFrame);
+      const useBlob = async () => {
+        const blob = note._photoBlob || (note.id ? await mediaStoreGet(note.id) : null);
+        if (!blob) {
+          photoFrame.remove();
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        photoImage.onload = () => URL.revokeObjectURL(url);
+        photoImage.onerror = () => {
+          URL.revokeObjectURL(url);
+          photoFrame.remove();
+        };
+        photoImage.src = url;
+      };
+      useBlob();
+    }
+
     const message = node("p", "card-message", note.message);
     card.append(message);
     if (!preview) {
@@ -712,10 +1004,15 @@
       card.append(expand);
     }
     card.append(node("p", "card-signature", "— anonymously, with feeling."));
-    if (note.song) {
+    if (note.song && musicStyle !== "none") {
       const song = normalizeSong(note.song);
       if (song) {
-        const link = node("a", "card-song");
+        const link = node(
+          "a",
+          musicStyle === "text"
+            ? "card-song-text"
+            : `card-song card-song-${musicStyle}`,
+        );
         link.href = songLink(song);
         link.target = "_blank";
         link.rel = "noopener noreferrer";
@@ -723,12 +1020,32 @@
           "aria-label",
           `${song.url ? "Open" : "Find"} ${song.title} by ${song.artist} on Spotify (new tab)`,
         );
-        const open = node("span", "song-open");
-        open.append(
-          node("span", "", song.url ? "Spotify" : "Find"),
-          icon("arrow"),
-        );
-        link.append(...songParts(song), open);
+
+        if (musicStyle === "vinyl") {
+          const disc = node("span", "mini-vinyl");
+          disc.append(node("i", "mini-vinyl-label", song.title.slice(0, 1).toUpperCase()));
+          const info = node("span", "song-info");
+          info.append(
+            node("strong", "", song.title),
+            node("span", "", song.artist),
+          );
+          link.append(disc, info, icon("arrow"));
+        } else if (musicStyle === "text") {
+          const musicIcon = icon("music");
+          const textWrap = node("span", "song-text-copy");
+          textWrap.append(
+            node("strong", "", song.title),
+            node("span", "", ` — ${song.artist}`),
+          );
+          link.append(musicIcon, textWrap, icon("arrow"));
+        } else {
+          const open = node("span", "song-open");
+          open.append(
+            node("span", "", song.url ? "Spotify" : "Find"),
+            icon("arrow"),
+          );
+          link.append(...songParts(song), open);
+        }
         card.append(link);
         if (song.id && !preview) card.append(embedToggle(song));
       }
@@ -760,71 +1077,14 @@
         ),
       );
 
-      const downloadWrap = node("div", "card-download");
-      const defaultTheme =
-        DEFAULT_THEME_BY_MOOD[note.mood] || "cream";
-      downloadWrap.dataset.theme = defaultTheme;
-      const downloadToggle = actionButton(
-        "download-toggle",
-        note.id,
-        "Choose a theme and download confession image",
-        "download",
-      );
-      downloadToggle.setAttribute("aria-expanded", "false");
-
-      const downloadMenu = node("div", "card-download-menu");
-      downloadMenu.hidden = true;
-      downloadMenu.append(
-        node("p", "card-download-title", "CHOOSE A COLOR"),
-        node(
-          "p",
-          "card-download-subtitle",
-          "Preview a palette, then save your confession.",
+      right.append(
+        actionButton(
+          "open-studio",
+          note.id,
+          "Save as Story, post or animated video",
+          "download",
         ),
       );
-
-      const themeRow = node("div", "card-theme-swatches");
-      Object.entries(EXPORT_THEMES).forEach(([themeName, theme]) => {
-        const swatch = node("button", "card-theme-swatch");
-        swatch.type = "button";
-        swatch.dataset.action = "theme-select";
-        swatch.dataset.id = note.id;
-        swatch.dataset.theme = themeName;
-        swatch.title = theme.label;
-        swatch.setAttribute("aria-label", `Use ${theme.label} theme`);
-        swatch.setAttribute(
-          "aria-pressed",
-          String(themeName === defaultTheme),
-        );
-        swatch.style.setProperty("--swatch", theme.soft);
-        swatch.style.setProperty("--swatch-ring", theme.accent);
-        swatch.append(node("span", "sr-only", theme.label));
-        themeRow.append(swatch);
-      });
-      downloadMenu.append(themeRow);
-
-      const formatRow = node("div", "card-download-formats");
-      ["png", "jpg"].forEach((format) => {
-        const option = node(
-          "button",
-          "card-download-option",
-          `Save ${format.toUpperCase()}`,
-        );
-        option.type = "button";
-        option.dataset.action = "download";
-        option.dataset.id = note.id;
-        option.dataset.format = format;
-        option.setAttribute(
-          "aria-label",
-          `Save this confession as ${format.toUpperCase()} with the selected theme`,
-        );
-        formatRow.append(option);
-      });
-      downloadMenu.append(formatRow);
-      downloadWrap.append(downloadToggle, downloadMenu);
-      right.append(downloadWrap);
-
-      setCardTheme(card, defaultTheme);
 
       if (!note.example)
         right.append(
@@ -835,255 +1095,12 @@
     }
     return card;
   }
-  function roundRectPath(ctx, x, y, width, height, radius) {
-    const r = Math.min(radius, width / 2, height / 2);
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + width, y, x + width, y + height, r);
-    ctx.arcTo(x + width, y + height, x, y + height, r);
-    ctx.arcTo(x, y + height, x, y, r);
-    ctx.arcTo(x, y, x + width, y, r);
-    ctx.closePath();
+  let pendingId = null;
+  function getPendingId() {
+    if (!pendingId)
+      pendingId = `note-${window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`}`;
+    return pendingId;
   }
-
-  function wrapCanvasText(ctx, text, maxWidth) {
-    const paragraphs = String(text).split(/\n/);
-    const lines = [];
-    paragraphs.forEach((paragraph, paragraphIndex) => {
-      const words = paragraph.split(/\s+/).filter(Boolean);
-      if (!words.length) {
-        lines.push("");
-        return;
-      }
-      let line = "";
-      words.forEach((word) => {
-        const test = line ? `${line} ${word}` : word;
-        if (ctx.measureText(test).width <= maxWidth || !line) line = test;
-        else {
-          lines.push(line);
-          line = word;
-        }
-      });
-      if (line) lines.push(line);
-      if (paragraphIndex < paragraphs.length - 1) lines.push("");
-    });
-    return lines;
-  }
-
-  function drawExportCloud(ctx, x, y, scale, color) {
-    ctx.save();
-    ctx.fillStyle = color;
-    ctx.globalAlpha = 0.88;
-    ctx.beginPath();
-    ctx.arc(x, y, 42 * scale, Math.PI, 0);
-    ctx.arc(x + 48 * scale, y - 20 * scale, 55 * scale, Math.PI, 0);
-    ctx.arc(x + 110 * scale, y, 45 * scale, Math.PI, 0);
-    ctx.rect(x - 42 * scale, y, 197 * scale, 42 * scale);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  function loadCanvasImage(src) {
-    return new Promise((resolve, reject) => {
-      const image = new Image();
-      image.decoding = "async";
-      image.onload = () => resolve(image);
-      image.onerror = reject;
-      image.src = src;
-    });
-  }
-
-  function drawExportCharacter(ctx, image, characterKey, x, y, size) {
-    const config = CHARACTER_STICKERS[characterKey] || CHARACTER_STICKERS.chiikawa;
-    const crop = config.crop;
-    const sx = image.naturalWidth * crop.x;
-    const sy = image.naturalHeight * crop.y;
-    const sw = image.naturalWidth * crop.width;
-    const sh = image.naturalHeight * crop.height;
-
-    ctx.save();
-    ctx.shadowColor = "rgba(55, 41, 31, .13)";
-    ctx.shadowBlur = 22;
-    ctx.shadowOffsetY = 10;
-    roundRectPath(ctx, x, y, size, size, 38);
-    ctx.clip();
-    ctx.drawImage(image, sx, sy, sw, sh, x, y, size, size);
-    ctx.restore();
-
-    ctx.save();
-    ctx.strokeStyle = "rgba(255,255,255,.88)";
-    ctx.lineWidth = 10;
-    roundRectPath(ctx, x, y, size, size, 38);
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  async function downloadConfessionImage(note, format = "png", themeName = null) {
-    const mood = MOODS[note.mood] || MOODS.life;
-    const resolvedTheme = themeName || DEFAULT_THEME_BY_MOOD[note.mood] || "cream";
-    const theme = EXPORT_THEMES[resolvedTheme] || EXPORT_THEMES.cream;
-    const characterKey = characterForNote(note);
-    let characterImage = null;
-    try {
-      characterImage = await loadCanvasImage(CHARACTER_STICKERS[characterKey].src);
-    } catch {
-      characterImage = null;
-    }
-    const canvas = document.createElement("canvas");
-    canvas.width = 1080;
-    canvas.height = 1350;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("Canvas unavailable");
-
-    if (document.fonts?.ready) {
-      try { await document.fonts.ready; } catch {}
-    }
-
-    ctx.fillStyle = format === "jpg" ? "#ffffff" : theme.bg;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // soft background shapes
-    ctx.fillStyle = theme.bg;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    drawExportCloud(ctx, -35, 145, 1.2, "#ffffff");
-    drawExportCloud(ctx, 815, 248, 0.95, "#ffffff");
-    drawExportCloud(ctx, 735, 1218, 1.25, "#ffffff");
-
-    ctx.save();
-    ctx.globalAlpha = 0.22;
-    ctx.fillStyle = theme.soft;
-    ctx.beginPath();
-    ctx.arc(930, 95, 185, 0, Math.PI * 2);
-    ctx.arc(95, 1175, 220, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // main postcard
-    ctx.save();
-    ctx.shadowColor = "rgba(55, 41, 31, .12)";
-    ctx.shadowBlur = 42;
-    ctx.shadowOffsetY = 18;
-    roundRectPath(ctx, 90, 95, 900, 1160, 54);
-    ctx.fillStyle = theme.panel;
-    ctx.fill();
-    ctx.restore();
-
-    ctx.save();
-    roundRectPath(ctx, 90, 95, 900, 1160, 54);
-    ctx.clip();
-    const gradient = ctx.createLinearGradient(90, 95, 990, 1255);
-    gradient.addColorStop(0, "rgba(255,255,255,.18)");
-    gradient.addColorStop(1, theme.bg);
-    ctx.globalAlpha = 0.42;
-    ctx.fillStyle = gradient;
-    ctx.fillRect(90, 95, 900, 1160);
-    ctx.restore();
-
-    ctx.fillStyle = theme.soft;
-    roundRectPath(ctx, 90, 95, 900, 14, 7);
-    ctx.fill();
-
-    ctx.fillStyle = theme.ink;
-    ctx.font = '600 32px "Poppins", sans-serif';
-    ctx.fillText("ConfessMo.", 155, 175);
-
-    // mood pill
-    ctx.font = '600 20px "Poppins", sans-serif';
-    const moodText = `${mood.symbol}  ${mood.label.toUpperCase()}`;
-    const moodWidth = ctx.measureText(moodText).width + 48;
-    ctx.globalAlpha = 0.92;
-    ctx.fillStyle = theme.bg;
-    roundRectPath(ctx, 155, 215, moodWidth, 48, 24);
-    ctx.fill();
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = theme.ink;
-    ctx.fillText(moodText, 178, 247);
-
-    ctx.fillStyle = theme.ink;
-    ctx.globalAlpha = 0.62;
-    ctx.font = '500 22px "Poppins", sans-serif';
-    ctx.fillText(`To ${note.to || "whoever needs this"}`, 155, 327);
-    ctx.globalAlpha = 1;
-
-    // dynamically size the confession so long posts still fit.
-    const maxMessageWidth = 770;
-    const maxMessageHeight = note.song ? 600 : 700;
-    let fontSize = 59;
-    let lines = [];
-    while (fontSize >= 28) {
-      ctx.font = `500 ${fontSize}px "Cormorant Garamond", Georgia, serif`;
-      lines = wrapCanvasText(ctx, note.message, maxMessageWidth);
-      const lineHeight = fontSize * 1.18;
-      if (lines.length * lineHeight <= maxMessageHeight) break;
-      fontSize -= 3;
-    }
-    const lineHeight = fontSize * 1.18;
-    ctx.fillStyle = theme.ink;
-    let y = 420;
-    lines.forEach((line) => {
-      ctx.fillText(line, 155, y);
-      y += lineHeight;
-    });
-
-    ctx.globalAlpha = 0.62;
-    ctx.font = '500 20px "Poppins", sans-serif';
-    ctx.fillText("— anonymously, with feeling.", 155, Math.min(1035, y + 55));
-    ctx.globalAlpha = 1;
-
-    if (note.song) {
-      const song = normalizeSong(note.song);
-      if (song) {
-        const sy = 1060;
-        ctx.fillStyle = theme.bg;
-        roundRectPath(ctx, 150, sy, 560, 92, 22);
-        ctx.fill();
-        ctx.fillStyle = song.color || theme.soft;
-        roundRectPath(ctx, 170, sy + 16, 60, 60, 14);
-        ctx.fill();
-        ctx.fillStyle = "#ffffff";
-        ctx.font = '600 30px "Cormorant Garamond", Georgia, serif';
-        ctx.textAlign = "center";
-        ctx.fillText(song.title.slice(0, 1).toUpperCase(), 200, sy + 57);
-        ctx.textAlign = "left";
-        ctx.fillStyle = theme.ink;
-        ctx.font = '600 18px "Poppins", sans-serif';
-        ctx.fillText(song.title.slice(0, 34), 250, sy + 41);
-        ctx.globalAlpha = 0.62;
-        ctx.font = '500 15px "Poppins", sans-serif';
-        ctx.fillText(song.artist.slice(0, 38), 250, sy + 66);
-        ctx.globalAlpha = 1;
-      }
-    }
-
-    if (characterImage)
-      drawExportCharacter(ctx, characterImage, characterKey, 775, 1000, 160);
-    ctx.fillStyle = theme.soft;
-    ctx.font = '500 40px Georgia, serif';
-    ctx.fillText("✦", 855, 900);
-    ctx.fillText("♡", 760, 930);
-    ctx.font = '500 27px Georgia, serif';
-    ctx.fillText("✧", 910, 955);
-
-    ctx.globalAlpha = 0.55;
-    ctx.fillStyle = theme.ink;
-    ctx.font = '500 16px "Poppins", sans-serif';
-    ctx.fillText("a little less unsaid.", 155, 1205);
-    ctx.globalAlpha = 1;
-
-    const mime = format === "jpg" ? "image/jpeg" : "image/png";
-    const extension = format === "jpg" ? "jpg" : "png";
-    const blob = await new Promise((resolve) => canvas.toBlob(resolve, mime, 0.94));
-    if (!blob) throw new Error("Couldn’t create image");
-    const url = URL.createObjectURL(blob);
-    const link = node("a");
-    link.href = url;
-    link.download = `confessmo-${String(note.id || "confession").replace(/[^a-zA-Z0-9-]/g, "-")}.${extension}`;
-    document.body.append(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 3000);
-  }
-
   function updateReadMore() {
     $$(".confession-card", grid).forEach((card) => {
       const message = $(".card-message", card);
@@ -1195,52 +1212,13 @@
     const button = event.target.closest("[data-action]");
     if (!button) return;
     const { action, id } = button.dataset;
-    if (action === "download-toggle") {
-      const wrap = button.closest(".card-download");
-      const menu = $(".card-download-menu", wrap);
-      const opening = menu.hidden;
-      $$(".card-download-menu", grid).forEach((item) => (item.hidden = true));
-      $$('[data-action="download-toggle"]', grid).forEach((item) =>
-        item.setAttribute("aria-expanded", "false"),
-      );
-      menu.hidden = !opening;
-      button.setAttribute("aria-expanded", String(opening));
-      return;
-    }
-    if (action === "theme-select") {
-      const themeName = button.dataset.theme;
-      if (!Object.hasOwn(EXPORT_THEMES, themeName)) return;
-      const card = button.closest(".confession-card");
-      const wrap = button.closest(".card-download");
-      if (wrap) wrap.dataset.theme = themeName;
-      if (card) setCardTheme(card, themeName);
-      return;
-    }
-    if (action === "download") {
+    if (action === "open-studio") {
       const note = [...state.posts, ...EXAMPLES].find((item) => item.id === id);
-      if (!note) {
+      if (!note || !window.ConfessMoStudio) {
         toast("That confession couldn’t be prepared for download.", true);
         return;
       }
-      const format = button.dataset.format === "jpg" ? "jpg" : "png";
-      const wrap = button.closest(".card-download");
-      const themeName =
-        wrap?.dataset.theme || DEFAULT_THEME_BY_MOOD[note.mood] || "cream";
-      button.disabled = true;
-      downloadConfessionImage(note, format, themeName)
-        .then(() =>
-          toast(
-            `Saved ${EXPORT_THEMES[themeName]?.label || "selected"} theme as ${format.toUpperCase()}.`,
-          ),
-        )
-        .catch(() => toast("Couldn’t create the image. Try again.", true))
-        .finally(() => {
-          button.disabled = false;
-          const menu = button.closest(".card-download-menu");
-          if (menu) menu.hidden = true;
-          const toggle = $("[data-action='download-toggle']", button.closest(".card-download"));
-          if (toggle) toggle.setAttribute("aria-expanded", "false");
-        });
+      window.ConfessMoStudio.open(note);
       return;
     }
     if (action === "expand") {
@@ -1311,10 +1289,31 @@
       })
     )
       return;
+    mediaStoreDelete(id);
     closeDialog("confirmDialog");
     renderWall();
     $(`.wall-tabs [data-view="${view}"]`).focus({ preventScroll: true });
     toast("Your note was removed from this browser.");
+  });
+
+  $("#confessionPhoto").addEventListener("change", async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    $("#photoStatus").textContent = "Compressing photo…";
+    try {
+      const compressed = await compressPhoto(file);
+      selectedPhotoBlob = compressed;
+      updatePhotoPreview(compressed, file.name);
+      scheduleDraft();
+    } catch (error) {
+      clearSelectedPhoto();
+      $("#photoStatus").textContent = error.message || "That photo could not be prepared.";
+      toast(error.message || "That photo could not be prepared.", true);
+    }
+  });
+  $("#removePhotoButton").addEventListener("click", () => {
+    clearSelectedPhoto();
+    scheduleDraft();
   });
 
   form.addEventListener("input", () => {
@@ -1344,7 +1343,9 @@
   $("#previewButton").addEventListener("click", () => {
     const draft = validateDraft();
     if (!draft) return;
-    $("#previewContent").replaceChildren(makeCard(draft, true));
+    $("#previewContent").replaceChildren(
+      makeCard({ id: getPendingId(), ...draft, hasPhoto: Boolean(selectedPhotoBlob), _photoBlob: selectedPhotoBlob }, true),
+    );
     openDialog("previewDialog");
   });
   $("#publishPreview").addEventListener("click", () => {
@@ -1364,17 +1365,29 @@
     $("span", button).textContent = "Saving…";
     form.inert = true;
     await new Promise((resolve) => requestAnimationFrame(resolve));
-    const id = `note-${window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`}`;
-    const note = { id, ...draft, createdAt: Date.now() };
+    const id = getPendingId();
+    pendingId = null;
+    let hasPhoto = Boolean(selectedPhotoBlob);
+    if (selectedPhotoBlob) {
+      try {
+        await mediaStorePut(id, selectedPhotoBlob);
+      } catch {
+        hasPhoto = false;
+        toast("Your confession will be posted without the photo because browser photo storage is unavailable.", true);
+      }
+    }
+    const note = { id, ...draft, hasPhoto, createdAt: Date.now() };
     const saved = commit((next) => {
       if (next.posts.length >= 500) throw new Error("Post limit");
       next.posts.unshift(note);
     });
+    if (!saved && hasPhoto) mediaStoreDelete(id);
     if (saved) {
       burst(button, 12);
       form.reset();
       selectedSong = null;
       renderAttachedSong();
+      clearSelectedPhoto();
       updateCounter();
       draftDirty = false;
       try {
@@ -1382,7 +1395,7 @@
       } catch {
         /* The confirmed post remains saved. */
       }
-      $("#draftStatus").textContent = "A little weight off your chest. ♡";
+      $("#draftStatus").textContent = "A little weight off your chest.";
       view = "mine";
       resetFilters();
       renderWall();
@@ -1474,8 +1487,11 @@
     if (motionOff()) return;
     const rect = target.getBoundingClientRect();
     for (let i = 0; i < count; i++) {
-      const heart = node("span", "heart-particle", i % 2 ? "♡" : "♥");
+      const heart = node("span", "heart-particle");
       heart.setAttribute("aria-hidden", "true");
+      const heartIcon = icon("heart");
+      if (i % 2 === 0) heart.classList.add("filled");
+      heart.append(heartIcon);
       heart.style.left = `${rect.left + rect.width / 2}px`;
       heart.style.top = `${rect.top + rect.height / 2}px`;
       heart.style.fontSize = `${12 + Math.random() * 12}px`;
@@ -1591,6 +1607,18 @@
         typeof draft.to === "string" ? draft.to.slice(0, 40) : "";
       if (Object.hasOwn(MOODS, draft.mood))
         $(`input[name="mood"][value="${draft.mood}"]`, form).checked = true;
+      if (CARD_DESIGNS.includes(draft.design)) {
+        const designInput = $(`input[name="cardDesign"][value="${draft.design}"]`, form);
+        if (designInput) designInput.checked = true;
+      }
+      if (MUSIC_STYLES.includes(draft.musicStyle)) {
+        const musicInput = $(`input[name="musicStyle"][value="${draft.musicStyle}"]`, form);
+        if (musicInput) musicInput.checked = true;
+      }
+      if (Object.hasOwn(EXPORT_THEMES, draft.theme)) {
+        const themeInput = $(`input[name="cardTheme"][value="${draft.theme}"]`, form);
+        if (themeInput) themeInput.checked = true;
+      }
       selectedSong = normalizeSong(draft.song);
       $("#draftStatus").textContent = "Welcome back. Your draft is here.";
     }
@@ -1602,6 +1630,21 @@
   renderAttachedSong();
   renderWall();
   updateProgress();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(updateReadMore).catch(() => {});
+  if (window.ConfessMoStudio)
+    window.ConfessMoStudio.init({
+      themes: EXPORT_THEMES,
+      moods: MOODS,
+      defaultThemeByMood: DEFAULT_THEME_BY_MOOD,
+      characters: CHARACTER_STICKERS,
+      characterFor: characterForNote,
+      normalizeSong,
+      getPhoto: mediaStoreGet,
+      loadBlobImage: loadLocalImage,
+      openDialog,
+      closeDialog,
+      toast,
+    });
   if ("IntersectionObserver" in window && !motionOff()) {
     const observer = new IntersectionObserver(
       (entries) =>
